@@ -130,7 +130,15 @@ def set_protected_phrases(phrases: list[str]):
 def get_domain_contexts() -> list[str]:
     with _lock:
         _ensure_loaded()
-        contexts = (_cache or {}).get("domain_contexts", [])
+        cache = _cache or {}
+        # Older config.json files store the list under the singular key
+        # "domain_context" (the key was renamed when multiple contexts were
+        # introduced). Fall back to it so those settings are not silently
+        # ignored; an explicitly saved "domain_contexts" always wins.
+        if "domain_contexts" in cache:
+            contexts = cache["domain_contexts"]
+        else:
+            contexts = cache.get("domain_context", [])
     if isinstance(contexts, str):
         return [contexts] if contexts.strip() else []
     if not isinstance(contexts, list):
@@ -152,6 +160,7 @@ def set_domain_contexts(contexts: list[str]):
             if c:
                 cleaned.append(c)
     config["domain_contexts"] = cleaned
+    config.pop("domain_context", None)  # retire the legacy singular key once migrated
     _save_config(config)
 
 

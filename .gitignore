@@ -1,0 +1,14 @@
+# Secrets — config.json holds the user's API keys (Gemini / DeepSeek / DeepL),
+# entered through the app's Settings UI. It must NEVER be committed: this is a
+# public repository. The app starts fine without it (empty config).
+config.json
+
+# Local state and caches
+__pycache__/
+*.pyc
+temp/
+.superpowers/
+
+# Translation memory — contains the user's own translated content
+translation_memory.sqlite3
+*.sqlite3

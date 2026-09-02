@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Translator — Document Translation</title>
+    <meta name="description" content="Translate documents while preserving formatting.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css?v=29">
+    <link rel="stylesheet" href="/static/css/redesign.css?v=1">
+</head>
+
+<body class="v2 theme-dark">
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="app" id="app">
+        <!-- SIDEBAR -->
+        <aside class="v2-sidebar">
+            <div class="v2-brand">
+                <div class="v2-brand-mark"><i data-lucide="languages"></i></div>
+                <div class="v2-brand-text">
+                    <div class="v2-brand-name">Translator</div>
+                    <div class="v2-brand-tag">Document AI</div>
+                </div>
+            </div>
+
+            <div class="v2-navlabel">Workspace</div>
+            <nav class="v2-nav">
+                <button class="v2-navitem active" data-view="new" title="New translation"><i data-lucide="wand-sparkles"></i> <span class="v2-nt">New translation</span></button>
+                <button class="v2-navitem" data-view="library" title="Library"><i data-lucide="folder-open"></i> <span class="v2-nt">Library</span></button>
+                <button class="v2-navitem" data-view="usage" title="Usage"><i data-lucide="chart-line"></i> <span class="v2-nt">Usage</span></button>
+            </nav>
+
+            <div class="v2-spacer"></div>
+
+            <nav class="v2-nav v2-nav-bottom">
+                <button class="v2-navitem" id="v2-open-glossary" title="Glossary &amp; rules"><i data-lucide="book-marked"></i> <span class="v2-nt">Glossary &amp; rules</span></button>
+                <button class="v2-navitem" id="v2-open-settings" title="Settings"><i data-lucide="settings"></i> <span class="v2-nt">Settings</span></button>
+            </nav>
+        </aside>
+
+        <!-- MAIN -->
+        <div class="v2-main">
+            <header class="v2-topbar">
+                <div class="v2-topbar-left">
+                    <button class="v2-iconbtn" id="v2-collapse" title="Collapse sidebar"><i data-lucide="panel-left"></i></button>
+                    <div>
+                        <h1>New translation</h1>
+                        <p>Set up a job, then launch it across all your target languages.</p>
+                    </div>
+                </div>
+                <div class="v2-topbar-actions">
+                    <button class="theme-toggle v2-iconbtn" id="theme-toggle" type="button" aria-pressed="true" title="Toggle theme"><i data-lucide="moon"></i></button>
+                    <button class="v2-iconbtn" id="btn-shortcuts" title="Keyboard shortcuts (?)"><i data-lucide="keyboard"></i></button>
+                    <div class="v2-divider"></div>
+                    <button class="v2-iconbtn" id="btn-settings" title="Settings"><i data-lucide="settings"></i></button>
+                </div>
+            </header>
+
+            <div class="v2-content">
+                <section class="v2-config">
+                    <!-- STEP 1 — Source files (always open) -->
+                    <div class="v2-step v2-step-open" data-step="1">
+                        <div class="v2-step-head">
+                            <span class="v2-step-ic"><i data-lucide="file-up"></i></span>
+                            <span class="shelf-title-wrap">
+                                <span class="shelf-kicker">Step 1</span>
+                                <span class="shelf-title">Source files</span>
+                                <span class="shelf-meta" id="shelf-upload-meta">No files queued</span>
+                            </span>
+                        </div>
+                        <div class="v2-step-body">
+                            <div class="file-manager-header file-manager-header-inline">
+                                <div class="file-manager-actions">
+                                    <div class="file-manager-density" role="group" aria-label="File list density">
+                                        <button type="button" class="btn-density btn-density-active" data-density="comfortable" aria-pressed="true">Comfort</button>
+                                        <button type="button" class="btn-density" data-density="compact" aria-pressed="false">Compact</button>
+                                    </div>
+                                    <button class="btn btn-manager" id="btn-select-all-originals" type="button">Select all</button>
+                                    <button class="btn btn-manager btn-manager-subtle" id="btn-clear-originals" type="button">Clear</button>
+                                </div>
+                            </div>
+                            <div class="file-manager-summary" id="original-manager-summary"><span class="summary-chip">No files queued</span></div>
+                            <div class="file-manager-list" id="original-file-list">
+                                <p class="file-manager-empty" id="original-files-empty">No uploaded documents yet</p>
+                            </div>
+
+                            <div class="drop-zone" id="drop-zone">
+                                <div class="drop-zone-content">
+                                    <div class="drop-zone-compact-info"><span>+</span><span id="drop-zone-compact-label">Files loaded - drop more or browse</span></div>
+                                    <div class="drop-icon">
+                                        <svg width="40" height="40" viewBox="0 0 64 64" fill="none">
+                                            <rect x="12" y="8" width="40" height="48" rx="4" stroke="currentColor" stroke-width="2" fill="none" />
+                                            <path d="M22 28L32 20L42 28" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                            <path d="M32 20V44" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                            <path d="M20 36H16V52C16 54.2 17.8 56 20 56H44C46.2 56 48 54.2 48 52V36H44" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none" />
+                                        </svg>
+                                    </div>
+                                    <p class="drop-text">Drag &amp; drop your <strong>.docx</strong>, <strong>.pptx</strong>, <strong>.xlsx</strong>, <strong>.pdf</strong>, <strong>.md</strong>, or <strong>.html</strong> files here</p>
+                                    <p class="drop-subtext">or</p>
+                                    <button type="button" class="btn btn-browse" id="btn-browse">Browse files</button>
+                                </div>
+                                <input type="file" id="file-input" class="file-input-visually-hidden" accept=".docx,.pptx,.xlsx,.pdf,.md,.markdown,.html,.htm" multiple aria-label="Choose documents to translate">
+                            </div>
+                            <div class="upload-limit-toggle">
+                                <label class="limit-toggle-label">
+                                    <span class="limit-toggle-text">Large file mode <span class="limit-toggle-hint">(up to 500 MB)</span></span>
+                                    <span class="limit-toggle-switch"><input type="checkbox" id="large-file-toggle"><span class="limit-toggle-track"><span class="limit-toggle-thumb"></span></span></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2 — Languages (shelf) -->
+                    <section class="v2-step workspace-shelf open" data-shelf="language" data-step="2">
+                        <button class="shelf-header" type="button" data-shelf-toggle="language" aria-expanded="true">
+                            <span class="v2-step-ic"><i data-lucide="globe"></i></span>
+                            <span class="shelf-title-wrap">
+                                <span class="shelf-kicker">Step 2</span>
+                                <span class="shelf-title">Target languages</span>
+                                <span class="shelf-copy">Choose one or more target languages.</span>
+                            </span>
+                            <span class="shelf-meta" id="shelf-language-meta">No languages selected</span>
+                            <span class="shelf-chevron" aria-hidden="true"><i data-lucide="chevron-down"></i></span>
+                        </button>
+                        <div class="shelf-body" id="shelf-language-body">
+                            <div class="language-controls">
+                                <div class="language-search"><input type="text" id="language-search" class="input-field" placeholder="Search language..."></div>
+                                <div class="language-meta">
+                                    <span class="language-selected" id="language-selected">No languages selected</span>
+                                    <span class="language-count" id="language-count"></span>
+                                </div>
+                                <div class="language-toolbar">
+                                    <button class="btn btn-manager" id="btn-select-all-languages" type="button">Select all visible</button>
+                                    <button class="btn btn-manager btn-manager-subtle" id="btn-clear-languages" type="button">Clear selection</button>
+                                    <button class="btn btn-manager" id="btn-save-preset" type="button" title="Save current selection as a preset">+ Preset</button>
+                                </div>
+                            </div>
+                            <div class="presets-row" id="presets-row"></div>
+                            <div class="language-list" id="language-list">
+                                {% for lang in languages %}
+                                <button type="button" class="language-item" data-lang="{{ lang }}" data-code="{{ language_codes[lang] }}">{{ lang }}</button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- STEP 3 — Mode & model (shelf) -->
+                    <section class="v2-step workspace-shelf open" data-shelf="setup-model" data-step="3">
+                        <button class="shelf-header" type="button" data-shelf-toggle="setup-model" aria-expanded="true">
+                            <span class="v2-step-ic"><i data-lucide="sliders-horizontal"></i></span>
+                            <span class="shelf-title-wrap">
+                                <span class="shelf-kicker">Step 3</span>
+                                <span class="shelf-title">Mode &amp; model</span>
+                                <span class="shelf-copy">Choose the document method and backend.</span>
+                            </span>
+                            <span class="shelf-meta" id="shelf-setup-model-meta">General - Gemini 3.0 Flash</span>
+                            <span class="shelf-chevron" aria-hidden="true"><i data-lucide="chevron-down"></i></span>
+                        </button>
+                        <div class="shelf-body" id="shelf-setup-model-body">
+                            <div class="session-summary-strip" id="session-summary-strip">
+                                <span class="summary-chip" id="summary-files-chip">0 files</span>
+                                <span class="summary-chip" id="summary-languages-chip">0 languages</span>
+                                <span class="summary-chip" id="summary-mode-chip">General</span>
+                                <span class="summary-chip" id="summary-engine-chip">Gemini 3.0 Flash</span>
+                            </div>
+                            <div class="engine-selector">
+                                <div class="engine-group">
+                                    <span class="engine-group-label">Document mode</span>
+                                    <div class="engine-pills">
+                                        <label class="engine-pill engine-pill-service"><input type="radio" name="document-mode" value="legacy" id="radio-mode-legacy"><span class="pill-body">Legacy</span></label>
+                                        <label class="engine-pill"><input type="radio" name="document-mode" value="general" id="radio-mode-general" checked><span class="pill-body">General</span></label>
+                                        <label class="engine-pill"><input type="radio" name="document-mode" value="presentation" id="radio-mode-presentation"><span class="pill-body">Presentation</span></label>
+                                        <label class="engine-pill"><input type="radio" name="document-mode" value="spreadsheet" id="radio-mode-spreadsheet"><span class="pill-body">Spreadsheet</span></label>
+                                        <label class="engine-pill"><input type="radio" name="document-mode" value="pdf" id="radio-mode-pdf"><span class="pill-body">PDF</span></label>
+                                        <label class="engine-pill"><input type="radio" name="document-mode" value="markdown" id="radio-mode-markdown"><span class="pill-body">Markdown</span></label>
+                                        <label class="engine-pill"><input type="radio" name="document-mode" value="html" id="radio-mode-html"><span class="pill-body">HTML</span></label>
+                                    </div>
+                                </div>
+                                <div class="engine-group">
+                                    <span class="engine-group-label">Gemini</span>
+                                    <div class="engine-pills">
+                                        <label class="engine-pill"><input type="radio" name="backend" value="gemini-25-flash" id="radio-gemini-25-flash"><span class="pill-body"><span class="pill-ver">2.5</span> Flash</span></label>
+                                        <label class="engine-pill"><input type="radio" name="backend" value="gemini-25-pro" id="radio-gemini-25-pro"><span class="pill-body"><span class="pill-ver">2.5</span> Pro</span></label>
+                                        <label class="engine-pill"><input type="radio" name="backend" value="gemini" id="radio-gemini" checked><span class="pill-body"><span class="pill-ver">3.0</span> Flash</span></label>
+                                        <label class="engine-pill"><input type="radio" name="backend" value="gemini-31-flash-lite-preview" id="radio-gemini-31-flash-lite-preview"><span class="pill-body"><span class="pill-ver">3.1</span> Flash Lite</span></label>
+                                        <label class="engine-pill"><input type="radio" name="backend" value="gemini-pro" id="radio-gemini-pro"><span class="pill-body"><span class="pill-ver">3.1</span> Pro</span></label>
+                                    </div>
+                                </div>
+                                <div class="engine-group">
+                                    <span class="engine-group-label">Other services</span>
+                                    <div class="engine-pills">
+                                        <label class="engine-pill engine-pill-service"><input type="radio" name="backend" value="google"><span class="pill-body">Google Translate</span></label>
+                                        <label class="engine-pill engine-pill-service"><input type="radio" name="backend" value="deepl" id="radio-deepl"><span class="pill-body">DeepL API</span></label>
+                                    </div>
+                                </div>
+                                <div class="engine-detail" id="engine-detail">
+                                    <span class="engine-detail-name">Gemini 3.0 Flash</span>
+                                    <span class="engine-detail-desc">Gemini API key - Preview flash model - Fast</span>
+                                </div>
+                                <div class="temperature-panel" id="temperature-panel">
+                                    <div class="temperature-header">
+                                        <div class="temperature-label-group">
+                                            <span class="temperature-label">Temperature</span>
+                                            <span class="temperature-hint">Lower = more consistent.</span>
+                                        </div>
+                                        <div class="temperature-mode-toggle" id="temp-mode-toggle">
+                                            <button type="button" class="temp-mode-btn active" id="temp-btn-default" data-mode="default">Default</button>
+                                            <button type="button" class="temp-mode-btn" id="temp-btn-custom" data-mode="custom">Custom</button>
+                                        </div>
+                                    </div>
+                                    <div class="temperature-slider-row hidden" id="temperature-slider-row">
+                                        <span class="temperature-scale-label">0.0</span>
+                                        <input type="range" id="temperature-slider" class="temperature-slider" min="0" max="2" step="0.05" value="0.70">
+                                        <span class="temperature-scale-label">2.0</span>
+                                        <span class="temperature-value-badge" id="temperature-value-badge">0.70</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- LAUNCH -->
+                    <div class="v2-launch">
+                        <div class="v2-launch-info">
+                            <div class="v2-launch-title">Ready to translate</div>
+                            <div class="v2-launch-sub" id="workspace-status-wrap">Select files and languages to begin.</div>
+                            <div class="workspace-status hidden" id="workspace-status"></div>
+                        </div>
+                        <button class="btn btn-translate" id="btn-translate" disabled>
+                            <i data-lucide="sparkles"></i>
+                            <span>Translate selected</span>
+                        </button>
+                    </div>
+
+                    <!-- RESULTS / LIBRARY -->
+                    <div class="v2-results">
+                        <div class="v2-results-head">
+                            <h2>Translated files</h2>
+                            <div class="file-manager-density" role="group" aria-label="File list density">
+                                <button type="button" class="btn-density btn-density-active" data-density="comfortable" aria-pressed="true">Comfort</button>
+                                <button type="button" class="btn-density" data-density="compact" aria-pressed="false">Compact</button>
+                            </div>
+                            <button class="btn btn-manager" id="btn-select-all-translated" type="button">Select all</button>
+                            <button class="btn btn-manager btn-manager-subtle" id="btn-clear-history" type="button">Clear history</button>
+                            <button class="btn btn-manager" id="btn-download-selected" type="button">Download selected</button>
+                        </div>
+                        <div class="file-manager-summary" id="translated-manager-summary"><span class="summary-chip">No translations yet</span></div>
+                        <div class="v2-results-body">
+                            <div class="file-manager-list" id="translated-file-list">
+                                <p class="file-manager-empty" id="translated-files-empty">No translated documents yet</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Progress overlay (translation animation) ===== -->
+    <div class="progress-overlay hidden" id="progress-overlay">
+        <div class="translation-scene">
+            <div class="scene-grid"></div>
+            <div class="scene-stars" id="scene-stars"></div>
+            <div class="scene-document scene-doc-left">
+                <div class="scene-doc-paper">
+                    <div class="scene-doc-line w80"></div>
+                    <div class="scene-doc-line w55"></div>
+                    <div class="scene-doc-line w90"></div>
+                    <div class="scene-doc-line w40"></div>
+                    <div class="scene-doc-line w70"></div>
+                    <div class="scene-doc-line w60"></div>
+                    <div class="scene-doc-line w85"></div>
+                </div>
+                <span class="scene-doc-label">Source</span>
+            </div>
+            <div class="scene-beam scene-beam-left"><div class="beam-pulse"></div></div>
+            <div class="scene-engine">
+                <div class="engine-ring engine-ring-1"></div>
+                <div class="engine-ring engine-ring-2"></div>
+                <div class="engine-ring engine-ring-3"></div>
+                <div class="engine-core"><div class="engine-core-glow"></div></div>
+                <div class="engine-sparks" id="engine-sparks"></div>
+            </div>
+            <div class="scene-beam scene-beam-right"><div class="beam-pulse"></div></div>
+            <div class="scene-document scene-doc-right">
+                <div class="scene-doc-paper">
+                    <div class="scene-doc-line w80"></div>
+                    <div class="scene-doc-line w50"></div>
+                    <div class="scene-doc-line w90"></div>
+                    <div class="scene-doc-line w65"></div>
+                    <div class="scene-doc-line w75"></div>
+                    <div class="scene-doc-line w45"></div>
+                    <div class="scene-doc-line w85"></div>
+                </div>
+                <span class="scene-doc-label">Translated</span>
+            </div>
+            <div class="scene-particles" id="scene-particles"></div>
+        </div>
+        <div class="progress-hud">
+            <div class="progress-ring-container">
+                <svg class="progress-ring" width="100" height="100" viewBox="0 0 100 100">
+                    <circle class="progress-ring-bg" cx="50" cy="50" r="42" fill="none" stroke-width="5" />
+                    <circle class="progress-ring-fill" id="progress-ring-fill" cx="50" cy="50" r="42" fill="none" stroke-width="5" stroke-dasharray="263.9" stroke-dashoffset="263.9" />
+                </svg>
+                <span class="progress-percent" id="progress-percent">0%</span>
+            </div>
+            <h3 class="progress-phase" id="progress-phase">Starting translation...</h3>
+            <div class="progress-bar-container"><div class="progress-bar" id="progress-bar"></div></div>
+            <p class="progress-subtext" id="progress-subtext">Preparing translation queue...</p>
+            <button class="btn btn-cancel" id="btn-cancel">Cancel Translation</button>
+        </div>
+    </div>
+
+    <!-- ===== Telemetry modal ===== -->
+    <div class="telemetry-backdrop" id="telemetry-backdrop"></div>
+    <div class="telemetry-modal" id="telemetry-modal">
+        <div class="telemetry-header">
+            <h3>Batch Translation Report</h3>
+            <button class="btn-close-telemetry" id="btn-close-telemetry" title="Close">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="telemetry-body stagger-container">
+            <div class="telemetry-hero stagger-item">
+                <div class="telemetry-hero-glow"></div>
+                <div class="telemetry-cost-wrapper">
+                    <span class="telemetry-cost-label">Total Estimated API Cost</span>
+                    <div class="telemetry-cost-main" id="tel-cost-main">$0.0000</div>
+                    <div class="telemetry-cost-note" id="tel-cost-note">Based on Google Provider Rates</div>
+                </div>
+            </div>
+            <div class="telemetry-grid">
+                <div class="telemetry-card stagger-item">
+                    <h4>Batch Summary</h4>
+                    <div class="telemetry-card-content">
+                        <div class="tel-row"><span class="tel-label">Files</span><span class="tel-value" id="tel-file-count">-</span></div>
+                        <div class="tel-row"><span class="tel-label">Total Time</span><span class="tel-value highlight" id="tel-duration">-</span></div>
+                        <div class="tel-row"><span class="tel-label">Avg per File</span><span class="tel-value" id="tel-avg-duration">-</span></div>
+                    </div>
+                </div>
+                <div class="telemetry-card stagger-item">
+                    <h4>Engine Specs</h4>
+                    <div class="telemetry-card-content">
+                        <div class="tel-row"><span class="tel-label">Backend</span><span class="tel-value" id="tel-backend">-</span></div>
+                        <div class="tel-row"><span class="tel-label">Architecture</span><span class="tel-value badge" id="tel-mode">-</span></div>
+                        <div class="tel-row hidden" id="tel-tm-row"><span class="tel-label">Translation memory</span><span class="tel-value" id="tel-tm-stats">—</span></div>
+                        <div class="tel-row"><span class="tel-label">API Calls</span><span class="tel-value" id="tel-api-calls">-</span></div>
+                    </div>
+                </div>
+                <div class="telemetry-card telemetry-card-full stagger-item">
+                    <h4>Token Usage</h4>
+                    <div class="telemetry-tokens-viz">
+                        <div class="token-ring-container">
+                            <svg class="circular-chart blue" viewBox="0 0 36 36">
+                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="circle chart-input" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" id="ring-input-path" />
+                            </svg>
+                            <div class="ring-label"><span class="ring-value" id="tel-input-tokens">0</span><span class="ring-title">Prompt</span></div>
+                        </div>
+                        <div class="token-ring-container">
+                            <svg class="circular-chart purple" viewBox="0 0 36 36">
+                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="circle chart-output" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" id="ring-output-path" />
+                            </svg>
+                            <div class="ring-label"><span class="ring-value" id="tel-output-tokens">0</span><span class="ring-title">Completion</span></div>
+                        </div>
+                        <div class="token-totals">
+                            <div class="tel-row-total"><span>Total Tokens:</span><strong class="highlight-total" id="tel-total-tokens">0</strong></div>
+                            <div class="tel-row-sub hidden" id="tel-thinking-row"><span class="tel-label">Thinking Tokens:</span> <span id="tel-thinking-tokens" class="warn">0</span></div>
+                            <div class="tel-row-sub"><span class="tel-label">Input Cost:</span> <span id="tel-cost-input">$0.00</span></div>
+                            <div class="tel-row-sub"><span class="tel-label">Output Cost:</span> <span id="tel-cost-output">$0.00</span></div>
+                            <div class="tel-row-sub hidden" id="tel-thinking-row-cost"><span class="tel-label">Thinking Cost:</span> <span id="tel-cost-thinking" class="warn">$0.00</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="telemetry-card telemetry-card-full stagger-item">
+                    <h4>Network &amp; Reliability</h4>
+                    <div class="telemetry-network-grid">
+                        <div class="network-stat"><span class="net-value" id="tel-batches">0</span><span class="net-label">Total Batches</span></div>
+                        <div class="network-stat"><span class="net-value warn" id="tel-retries">0</span><span class="net-label">API Retries</span></div>
+                        <div class="network-stat"><span class="net-value" id="tel-avg-attempts">0</span><span class="net-label">Avg Attempts</span></div>
+                        <div class="network-stat"><span class="net-value alert" id="tel-failed-batches">0</span><span class="net-label">Failed Batches</span></div>
+                    </div>
+                </div>
+            </div>
+            <div id="tel-files-accordion" class="tel-files-accordion stagger-item"></div>
+        </div>
+        <div class="telemetry-footer stagger-item">
+            <button class="btn btn-telemetry-close" id="btn-telemetry-close">Close</button>
+        </div>
+    </div>
+
+    <!-- ===== Settings drawer ===== -->
+    <div class="settings-backdrop" id="settings-backdrop"></div>
+    <aside class="settings-drawer" id="settings-panel">
+        <div class="settings-drawer-header">
+            <h3>Settings</h3>
+            <button class="btn-close-settings" id="btn-close-settings" title="Close">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+        </div>
+        <div class="settings-drawer-body">
+            <div class="settings-section">
+                <label class="settings-label">Gemini API Key</label>
+                <p class="settings-hint">Get a free key from <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a></p>
+                <div class="api-key-input-row"><input type="password" id="api-key-input" class="input-field" placeholder="Paste your API key here" autocomplete="off"><button class="btn btn-save-key" id="btn-save-key">Save</button></div>
+                <div class="key-status" id="key-status" data-has-key="{{ 'true' if has_gemini_key else 'false' }}">{% if has_gemini_key %}<span class="key-saved">API key saved</span>{% else %}<span class="key-missing">No API key set - using Google Translate</span>{% endif %}</div>
+            </div>
+            <div class="settings-section">
+                <label class="settings-label">DeepL API Key</label>
+                <p class="settings-hint">Use your DeepL API key from <a href="https://developers.deepl.com" target="_blank">DeepL API</a></p>
+                <div class="api-key-input-row"><input type="password" id="deepl-api-key-input" class="input-field" placeholder="Paste your DeepL API key here" autocomplete="off"><button class="btn btn-save-key" id="btn-save-deepl-key">Save</button></div>
+                <div class="key-status" id="deepl-key-status" data-has-key="{{ 'true' if has_deepl_key else 'false' }}">{% if has_deepl_key %}<span class="key-saved">DeepL API key saved</span>{% else %}<span class="key-missing">No DeepL API key set</span>{% endif %}</div>
+            </div>
+            <div class="settings-section">
+                <label class="settings-label">Domain Context (for Gemini and DeepL)</label>
+                <p class="settings-hint">Add one or more domain hints to improve technical jargon. Google Translate does not use this field.</p>
+                <div class="phrases-input-row"><input type="text" id="domain-input" class="input-field" placeholder='e.g. "Woodworking Adhesives"' autocomplete="off"><button class="btn btn-add-phrase" id="btn-add-domain">Add</button></div>
+                <div class="phrases-list" id="domain-list">
+                    {% for domain_item in domain_contexts %}<div class="phrase-tag" data-domain="{{ domain_item }}"><span>{{ domain_item }}</span><button class="phrase-remove" title="Remove">×</button></div>{% endfor %}
+                    <p class="phrases-empty {% if domain_contexts %}hidden{% endif %}" id="domain-empty">No domain contexts added yet</p>
+                </div>
+                <div class="phrases-save-row"><span class="phrases-status" id="domain-status"></span></div>
+            </div>
+            <div class="settings-section">
+                <label class="settings-label">Do Not Translate - Protected Phrases</label>
+                <p class="settings-hint">Exact phrases that should stay in English (e.g., testing methods, brand names).</p>
+                <div class="phrases-input-row"><input type="text" id="phrase-input" class="input-field" placeholder='e.g. "Ring and Ball"' autocomplete="off"><button class="btn btn-add-phrase" id="btn-add-phrase">Add</button></div>
+                <div class="phrases-list" id="phrases-list">
+                    {% for phrase in phrases %}<div class="phrase-tag" data-phrase="{{ phrase }}"><span>{{ phrase }}</span><button class="phrase-remove" title="Remove">×</button></div>{% endfor %}
+                    <p class="phrases-empty {% if phrases %}hidden{% endif %}" id="phrases-empty">No phrases added yet</p>
+                </div>
+                <input type="file" id="glossary-csv-input" accept=".csv,text/csv" class="hidden">
+                <div class="csv-import-actions">
+                    <button type="button" class="btn tile-action-btn-secondary" id="btn-import-protected-csv">Import protected phrases CSV</button>
+                    <button type="button" class="btn tile-action-btn-secondary" id="btn-import-tm-csv">Import TM pairs CSV</button>
+                    <label class="csv-tm-lang-label" for="glossary-tm-lang">TM target language</label>
+                    <select id="glossary-tm-lang" class="input-field tm-lang-select-glossary" title="Translation memory CSV applies to this target language">
+                        {% for lang in languages %}<option value="{{ lang }}">{{ lang }}</option>{% endfor %}
+                    </select>
+                </div>
+                <p class="settings-hint phrases-csv-hint">Protected CSV: first column phrases. Translation memory CSV: source and target columns.</p>
+                <div class="phrases-save-row"><span class="phrases-status" id="phrases-status"></span></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ===== Shortcuts modal ===== -->
+    <div class="shortcuts-backdrop hidden" id="shortcuts-backdrop"></div>
+    <div class="shortcuts-modal hidden" id="shortcuts-modal">
+        <div class="shortcuts-modal-header">
+            <span>Keyboard Shortcuts</span>
+            <button class="btn-close-settings" id="btn-close-shortcuts" title="Close">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+        </div>
+        <table class="shortcuts-table">
+            <tbody>
+                <tr><td><kbd>Ctrl + Enter</kbd></td><td>Start translation</td></tr>
+                <tr><td><kbd>Esc</kbd></td><td>Close panel / Cancel translation</td></tr>
+                <tr><td><kbd>Ctrl + S</kbd></td><td>Save API key (when Settings open)</td></tr>
+                <tr><td><kbd>?</kbd></td><td>Toggle this shortcuts panel</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script type="module" src="/static/app.js?v=29"></script>
+    <script>
+        (function () {
+            function icons() { if (window.lucide) lucide.createIcons(); }
+            icons();
+            document.getElementById("v2-collapse").addEventListener("click", function () {
+                document.getElementById("app").classList.toggle("collapsed");
+            });
+            document.querySelectorAll(".v2-navitem[data-view]").forEach(function (n) {
+                n.addEventListener("click", function () {
+                    document.querySelectorAll(".v2-navitem").forEach(function (x) { x.classList.remove("active"); });
+                    n.classList.add("active");
+                });
+            });
+            var openSettings = function () { var b = document.getElementById("btn-settings"); if (b) b.click(); };
+            document.getElementById("v2-open-settings").addEventListener("click", openSettings);
+            document.getElementById("v2-open-glossary").addEventListener("click", openSettings);
+        })();
+    </script>
+</body>
+
+</html>

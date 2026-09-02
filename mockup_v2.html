@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Translator — Product Shell</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #08090b;
+            --panel: #0e0f12;
+            --surface-1: #141519;
+            --surface-2: #1a1c21;
+            --surface-3: #232529;
+            --border: rgba(255, 255, 255, 0.06);
+            --border-strong: rgba(255, 255, 255, 0.12);
+            --text-1: #f4f5f7;
+            --text-2: #9aa0aa;
+            --text-3: #646973;
+            --accent: #6366f1;
+            --accent-hover: #7679f5;
+            --accent-soft: rgba(99, 102, 241, 0.14);
+            --accent-ring: rgba(99, 102, 241, 0.42);
+            --success: #3fb950;
+            --success-soft: rgba(63, 185, 80, 0.14);
+            --r-sm: 6px;
+            --r-md: 8px;
+            --r-lg: 12px;
+            --r-pill: 999px;
+            --ease: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.28);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text-1); letter-spacing: -0.011em; }
+        ::selection { background: var(--accent-soft); }
+        :focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 2px; }
+        i[data-lucide] { width: 1em; height: 1em; stroke-width: 1.75; vertical-align: -0.125em; }
+
+        .ribbon { position: fixed; bottom: 12px; right: 12px; z-index: 200; background: var(--surface-2); border: 1px solid var(--border); color: var(--text-3); font-size: 0.64rem; font-weight: 600; letter-spacing: 0.13em; padding: 5px 11px; border-radius: var(--r-pill); }
+
+        .app { display: grid; grid-template-columns: 252px minmax(0, 1fr); min-height: 100vh; transition: grid-template-columns var(--ease); }
+        .app.collapsed { grid-template-columns: 66px minmax(0, 1fr); }
+
+        /* ---------- Sidebar ---------- */
+        .sidebar { position: sticky; top: 0; height: 100vh; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 14px 12px; overflow: hidden; }
+
+        .brand { display: flex; align-items: center; gap: 11px; padding: 4px 6px 14px; white-space: nowrap; }
+        .brand-mark { width: 32px; height: 32px; border-radius: 9px; background: var(--accent); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.05rem; flex-shrink: 0; }
+        .brand-name { font-size: 1rem; font-weight: 600; letter-spacing: -0.02em; }
+        .brand-tag { font-size: 0.68rem; color: var(--text-3); }
+
+        .nav-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); font-weight: 600; padding: 0 8px; margin-bottom: 6px; white-space: nowrap; }
+        .nav { display: flex; flex-direction: column; gap: 2px; }
+        .nav-item { display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: var(--r-md); color: var(--text-2); font-size: 0.86rem; font-weight: 500; cursor: pointer; border: none; background: transparent; font-family: inherit; text-align: left; width: 100%; white-space: nowrap; transition: all var(--ease); }
+        .nav-item i { font-size: 1.1rem; color: var(--text-3); transition: color var(--ease); flex-shrink: 0; }
+        .nav-item:hover { background: var(--surface-1); color: var(--text-1); }
+        .nav-item:hover i { color: var(--text-2); }
+        .nav-item.active { background: var(--surface-2); color: var(--text-1); }
+        .nav-item.active i { color: var(--accent); }
+        .nav-item .badge { margin-left: auto; font-size: 0.68rem; font-weight: 600; padding: 1px 7px; border-radius: var(--r-pill); background: var(--surface-3); color: var(--text-2); }
+
+        /* Recent */
+        .recent { flex: 1; min-height: 0; display: flex; flex-direction: column; margin-top: 18px; }
+        .recent-list { overflow-y: auto; display: flex; flex-direction: column; gap: 1px; margin: 0 -4px; padding: 0 4px; }
+        .recent-list::-webkit-scrollbar { width: 6px; }
+        .recent-list::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
+        .recent-row { display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: var(--r-sm); cursor: pointer; transition: background var(--ease); }
+        .recent-row:hover { background: var(--surface-1); }
+        .rname { flex: 1; min-width: 0; font-size: 0.77rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .rlang { font-size: 0.64rem; color: var(--success); flex-shrink: 0; }
+
+        .nav-bottom { border-top: 1px solid var(--border); margin-top: 8px; padding-top: 10px; }
+
+        /* Collapsed state */
+        .app.collapsed .brand-text, .app.collapsed .nav-label, .app.collapsed .nav-item .badge, .app.collapsed .nav-item .nt-label, .app.collapsed .recent { display: none; }
+        .app.collapsed .nav-item { justify-content: center; padding: 10px 0; }
+        .app.collapsed .brand { justify-content: center; padding-bottom: 14px; }
+        .app.collapsed .sidebar { padding: 14px 10px; }
+        .app.collapsed .nav-bottom { margin-top: auto; }
+
+        /* ---------- Main ---------- */
+        .main { display: flex; flex-direction: column; min-width: 0; }
+
+        .topbar { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; padding: 13px 24px; background: rgba(8, 9, 11, 0.82); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+        .topbar-left { display: flex; align-items: center; gap: 14px; }
+        .topbar-title h1 { font-size: 1.02rem; font-weight: 600; }
+        .topbar-title p { font-size: 0.76rem; color: var(--text-3); margin-top: 1px; }
+        .topbar-actions { display: flex; align-items: center; gap: 6px; }
+        .icon-btn { background: transparent; border: 1px solid transparent; color: var(--text-2); width: 34px; height: 34px; border-radius: var(--r-md); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.05rem; transition: all var(--ease); }
+        .icon-btn:hover { background: var(--surface-1); color: var(--text-1); }
+        .topbar-divider { width: 1px; height: 22px; background: var(--border-strong); margin: 0 4px; }
+
+        .content { padding: 26px 24px 40px; }
+        .config { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+
+        /* Step cards */
+        .stepc { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; transition: border-color var(--ease), box-shadow var(--ease); }
+        .stepc.open { border-color: var(--border-strong); box-shadow: var(--shadow); }
+        .stepc-head { display: flex; align-items: center; gap: 14px; padding: 16px 18px; cursor: pointer; user-select: none; }
+        .stepc-ic { width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border); transition: all var(--ease); }
+        .stepc.open .stepc-ic { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+        .stepc.done:not(.open) .stepc-ic { background: var(--success-soft); color: var(--success); border-color: transparent; }
+        .stepc-tt { flex: 1; min-width: 0; }
+        .stepc-kicker { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); font-weight: 600; }
+        .stepc-title { font-size: 0.96rem; font-weight: 600; margin-top: 1px; }
+        .stepc-value { font-size: 0.82rem; color: var(--text-2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .stepc.open .stepc-value { display: none; }
+        .edit-btn { font-family: inherit; font-size: 0.78rem; font-weight: 500; color: var(--text-2); background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 6px 12px; cursor: pointer; transition: all var(--ease); display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .edit-btn:hover { background: var(--surface-3); color: var(--text-1); }
+        .stepc.open .edit-btn { display: none; }
+        .stepc-chev { color: var(--text-3); font-size: 1.1rem; display: none; }
+        .stepc.open .stepc-chev { display: inline-block; }
+        .stepc-body { display: none; padding: 4px 18px 18px; }
+        .stepc.open .stepc-body { display: block; animation: fade 0.22s ease; }
+        @keyframes fade { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Queue inside step 1 */
+        .queue-toolbar { display: flex; align-items: center; gap: 10px; padding: 4px 2px 12px; }
+        .queue-toolbar .sel-count { font-size: 0.79rem; color: var(--text-2); flex: 1; font-variant-numeric: tabular-nums; }
+        .queue-toolbar .sel-count b { color: var(--text-1); }
+        .btn-mini { font-family: inherit; font-size: 0.77rem; font-weight: 500; color: var(--text-1); background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 6px 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all var(--ease); }
+        .btn-mini:hover { background: var(--surface-3); border-color: var(--border-strong); }
+        .tool-ic { width: 30px; height: 30px; border-radius: var(--r-sm); border: none; background: transparent; color: var(--text-2); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; transition: all var(--ease); }
+        .tool-ic:hover { background: var(--surface-2); color: var(--text-1); }
+
+        .queue-list { display: flex; flex-direction: column; gap: 6px; }
+        .file-row { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: var(--r-md); border: 1px solid var(--border); background: var(--panel); cursor: pointer; transition: all var(--ease); }
+        .file-row:hover { background: var(--surface-2); }
+        .file-row.selected { background: var(--accent-soft); border-color: var(--accent); }
+        .ftype { width: 30px; height: 30px; border-radius: var(--r-sm); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.57rem; font-weight: 700; letter-spacing: 0.03em; background: var(--surface-3); color: var(--text-2); }
+        .ftype.sm { width: 24px; height: 24px; font-size: 0.5rem; }
+        .ftype.pdf { color: #f0857a; } .ftype.doc { color: #6da8f0; } .ftype.ppt { color: #f0b46e; } .ftype.xls { color: #5fc98a; }
+        .fmeta { flex: 1; min-width: 0; }
+        .fname { font-size: 0.84rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .fsub { font-size: 0.73rem; color: var(--text-3); margin-top: 2px; }
+
+        .checkbox { width: 18px; height: 18px; flex-shrink: 0; border-radius: 5px; border: 1.5px solid var(--border-strong); background: transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #fff; transition: all var(--ease); padding: 0; }
+        .checkbox i { font-size: 0.82rem; opacity: 0; transition: opacity var(--ease); }
+        .checkbox[aria-checked="true"] { background: var(--accent); border-color: var(--accent); }
+        .checkbox[aria-checked="true"] i { opacity: 1; }
+        .checkbox[aria-checked="mixed"] { background: var(--accent); border-color: var(--accent); }
+        .checkbox[aria-checked="mixed"]::after { content: ""; width: 9px; height: 2px; background: #fff; border-radius: 1px; }
+
+        .add-drop { margin-top: 10px; border: 1.5px dashed var(--border-strong); border-radius: var(--r-md); padding: 14px; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 9px; color: var(--text-2); font-size: 0.82rem; transition: all var(--ease); }
+        .add-drop:hover { border-color: var(--accent); background: var(--accent-soft); color: var(--text-1); }
+        .add-drop i { font-size: 1.1rem; }
+
+        .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding: 11px 14px; border-radius: var(--r-md); background: var(--panel); border: 1px solid var(--border); }
+        .toggle-row .lbl { font-size: 0.83rem; }
+        .toggle-row .hint { color: var(--text-3); font-size: 0.75rem; }
+        .switch { width: 40px; height: 23px; border-radius: var(--r-pill); background: var(--surface-3); padding: 3px; cursor: pointer; border: none; transition: background var(--ease); flex-shrink: 0; }
+        .switch .knob { width: 17px; height: 17px; border-radius: 50%; background: var(--text-2); transition: all var(--ease); }
+        .switch.on { background: var(--accent); }
+        .switch.on .knob { transform: translateX(17px); background: #fff; }
+
+        .search-wrap { position: relative; margin-bottom: 13px; }
+        .search-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-3); font-size: 1rem; }
+        .search { width: 100%; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-md); padding: 10px 12px 10px 36px; color: var(--text-1); font-family: inherit; font-size: 0.85rem; }
+        .search:focus { outline: none; border-color: var(--accent); }
+        .search::placeholder { color: var(--text-3); }
+
+        .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+        .chip { padding: 7px 13px; border-radius: var(--r-pill); border: 1px solid var(--border); background: var(--panel); color: var(--text-2); font-size: 0.82rem; font-weight: 500; cursor: pointer; transition: all var(--ease); display: inline-flex; align-items: center; gap: 6px; }
+        .chip:hover { border-color: var(--border-strong); color: var(--text-1); }
+        .chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--text-1); }
+        .chip .ci { display: none; font-size: 0.9rem; color: var(--accent); }
+        .chip.active .ci { display: inline-block; }
+
+        .group { margin-top: 17px; }
+        .group:first-child { margin-top: 0; }
+        .group-label { font-size: 0.71rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-3); margin-bottom: 9px; font-weight: 600; }
+        .pills { display: flex; flex-wrap: wrap; gap: 7px; }
+        .pill { padding: 8px 13px; border-radius: var(--r-md); border: 1px solid var(--border); background: var(--panel); color: var(--text-2); font-size: 0.82rem; font-weight: 500; cursor: pointer; transition: all var(--ease); display: inline-flex; align-items: center; gap: 7px; }
+        .pill:hover { border-color: var(--border-strong); color: var(--text-1); }
+        .pill.active { background: var(--accent-soft); border-color: var(--accent); color: var(--text-1); }
+        .pill .ver { font-size: 0.65rem; font-weight: 700; padding: 1px 6px; border-radius: var(--r-pill); background: var(--surface-3); color: var(--text-2); }
+        .pill.active .ver { background: var(--accent); color: #fff; }
+
+        .detail { margin-top: 13px; padding: 12px 14px; border-radius: var(--r-md); background: var(--panel); border: 1px solid var(--border); border-left: 2px solid var(--accent); }
+        .detail-name { font-size: 0.84rem; font-weight: 600; }
+        .detail-desc { font-size: 0.78rem; color: var(--text-2); margin-top: 4px; line-height: 1.55; }
+
+        .temp { margin-top: 15px; padding: 13px 14px; border-radius: var(--r-md); background: var(--panel); border: 1px solid var(--border); }
+        .temp-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; gap: 12px; }
+        .temp-label { font-size: 0.83rem; font-weight: 600; }
+        .temp-hint { font-size: 0.73rem; color: var(--text-3); margin-top: 2px; }
+        .seg { display: inline-flex; background: var(--surface-2); border: 1px solid var(--border); padding: 2px; border-radius: var(--r-md); }
+        .seg-btn { padding: 5px 12px; border-radius: 6px; font-size: 0.76rem; font-weight: 500; color: var(--text-2); cursor: pointer; border: none; background: transparent; font-family: inherit; transition: all var(--ease); }
+        .seg-btn.active { background: var(--accent); color: #fff; }
+        .temp-slider { display: flex; align-items: center; gap: 12px; }
+        .temp-slider input[type=range] { flex: 1; accent-color: var(--accent); height: 4px; }
+        .temp-scale { font-size: 0.71rem; color: var(--text-3); font-variant-numeric: tabular-nums; }
+        .temp-val { font-size: 0.77rem; font-weight: 700; padding: 3px 9px; border-radius: var(--r-pill); background: var(--accent-soft); color: var(--accent); font-variant-numeric: tabular-nums; }
+
+        /* Launch bar */
+        .launch { margin-top: 4px; background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 16px 18px; display: flex; align-items: center; gap: 16px; position: sticky; bottom: 16px; box-shadow: var(--shadow); }
+        .launch-info { flex: 1; }
+        .launch-title { font-size: 0.9rem; font-weight: 600; }
+        .launch-sub { font-size: 0.77rem; color: var(--text-3); margin-top: 2px; font-variant-numeric: tabular-nums; }
+        .btn-launch { background: var(--accent); color: #fff; border: none; border-radius: var(--r-md); padding: 12px 22px; font-family: inherit; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 9px; transition: background var(--ease), transform var(--ease); }
+        .btn-launch:hover { background: var(--accent-hover); }
+        .btn-launch:active { transform: translateY(1px); }
+        .btn-launch:disabled { background: var(--surface-3); color: var(--text-3); cursor: not-allowed; }
+
+        /* Results panel */
+        .results-card { margin-top: 14px; background: var(--surface-1); border: 1px solid var(--success-soft); border-radius: var(--r-lg); overflow: hidden; }
+        .results-head { display: flex; align-items: center; gap: 13px; padding: 15px 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+        .results-title { font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 9px; }
+        .results-title i { color: var(--success); }
+        .results-sub { font-size: 0.78rem; color: var(--text-3); flex: 1; min-width: 110px; font-variant-numeric: tabular-nums; }
+        .btn-dl-all { background: var(--accent); color: #fff; border: none; border-radius: var(--r-md); padding: 9px 15px; font-family: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background var(--ease); }
+        .btn-dl-all:hover { background: var(--accent-hover); }
+        .results-list { padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+        .result-group { border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
+        .result-src { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--panel); font-size: 0.82rem; font-weight: 500; border-bottom: 1px solid var(--border); }
+        .result-out { display: flex; align-items: center; gap: 11px; padding: 9px 12px; font-size: 0.8rem; }
+        .result-out:not(:last-child) { border-bottom: 1px solid var(--border); }
+        .out-lang { font-size: 0.63rem; font-weight: 700; color: var(--accent); background: var(--accent-soft); padding: 2px 0; border-radius: var(--r-pill); width: 32px; text-align: center; flex-shrink: 0; }
+        .out-name { flex: 1; min-width: 0; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .fdl { color: var(--text-3); cursor: pointer; padding: 5px; border-radius: var(--r-sm); border: none; background: transparent; font-size: 0.95rem; transition: all var(--ease); }
+        .fdl:hover { color: var(--accent); background: var(--accent-soft); }
+
+        .hidden { display: none !important; }
+
+        @media (max-width: 760px) { .app { grid-template-columns: 66px minmax(0, 1fr); } .brand-text, .nav-label, .nav-item .nt-label, .nav-item .badge, .recent { display: none; } .nav-item { justify-content: center; padding: 10px 0; } }
+    </style>
+</head>
+
+<body>
+    <div class="ribbon">PREVIEW · PRODUCT SHELL</div>
+
+    <div class="app" id="app">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark"><i data-lucide="languages"></i></div>
+                <div class="brand-text">
+                    <div class="brand-name">Translator</div>
+                    <div class="brand-tag">Document AI</div>
+                </div>
+            </div>
+
+            <div class="nav-label">Workspace</div>
+            <nav class="nav">
+                <button class="nav-item active" title="New translation"><i data-lucide="wand-sparkles"></i> <span class="nt-label">New translation</span></button>
+                <button class="nav-item" title="Library"><i data-lucide="folder-open"></i> <span class="nt-label">Library</span> <span class="badge">128</span></button>
+                <button class="nav-item" title="Usage"><i data-lucide="chart-line"></i> <span class="nt-label">Usage</span></button>
+            </nav>
+
+            <div class="recent">
+                <div class="nav-label">Recent outputs</div>
+                <div class="recent-list">
+                    <div class="recent-row"><span class="ftype sm pdf">PDF</span><span class="rname">NL Katalog_de.pdf</span><span class="rlang">DE</span></div>
+                    <div class="recent-row"><span class="ftype sm doc">DOC</span><span class="rname">TDS_Hranipur_nl.docx</span><span class="rlang">NL</span></div>
+                    <div class="recent-row"><span class="ftype sm ppt">PPT</span><span class="rname">Sales_Deck_sk.pptx</span><span class="rlang">SK</span></div>
+                    <div class="recent-row"><span class="ftype sm doc">DOC</span><span class="rname">TDS_Hranipur_de.docx</span><span class="rlang">DE</span></div>
+                    <div class="recent-row"><span class="ftype sm pdf">PDF</span><span class="rname">NL Katalog_nl.pdf</span><span class="rlang">NL</span></div>
+                    <div class="recent-row"><span class="ftype sm xls">XLS</span><span class="rname">Price_list_fr.xlsx</span><span class="rlang">FR</span></div>
+                </div>
+            </div>
+
+            <nav class="nav nav-bottom">
+                <button class="nav-item" title="Glossary & rules"><i data-lucide="book-marked"></i> <span class="nt-label">Glossary &amp; rules</span></button>
+                <button class="nav-item" title="Settings"><i data-lucide="settings"></i> <span class="nt-label">Settings</span></button>
+            </nav>
+        </aside>
+
+        <!-- MAIN -->
+        <div class="main">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="icon-btn" id="collapse-btn" title="Collapse sidebar"><i data-lucide="panel-left"></i></button>
+                    <div class="topbar-title">
+                        <h1>New translation</h1>
+                        <p>Set up a job, then launch it across all your target languages.</p>
+                    </div>
+                </div>
+                <div class="topbar-actions">
+                    <button class="icon-btn" title="Keyboard shortcuts"><i data-lucide="keyboard"></i></button>
+                    <button class="icon-btn" title="Theme"><i data-lucide="moon"></i></button>
+                    <div class="topbar-divider"></div>
+                    <button class="icon-btn" title="Help"><i data-lucide="circle-help"></i></button>
+                </div>
+            </header>
+
+            <div class="content">
+                <section class="config">
+                    <!-- Step 1: Source files + queue -->
+                    <div class="stepc done open" data-step="1">
+                        <div class="stepc-head">
+                            <div class="stepc-ic"><i data-lucide="file-up"></i></div>
+                            <div class="stepc-tt">
+                                <div class="stepc-kicker">Step 1</div>
+                                <div class="stepc-title">Source files</div>
+                                <div class="stepc-value">3 files · 4.6 MB</div>
+                            </div>
+                            <button class="edit-btn"><i data-lucide="pencil"></i> Edit</button>
+                            <i class="stepc-chev" data-lucide="chevron-up"></i>
+                        </div>
+                        <div class="stepc-body">
+                            <div class="queue-toolbar">
+                                <button class="checkbox" id="select-all" role="checkbox" aria-checked="true" aria-label="Select all"><i data-lucide="check"></i></button>
+                                <span class="sel-count"><b id="qsel">3</b> of 3 selected</span>
+                                <button class="btn-mini"><i data-lucide="plus"></i> Add files</button>
+                                <button class="tool-ic" id="clear-queue" title="Remove all"><i data-lucide="trash-2"></i></button>
+                            </div>
+                            <div class="queue-list" id="queue-list">
+                                <div class="file-row selected" data-id="1">
+                                    <button class="checkbox" role="checkbox" aria-checked="true"><i data-lucide="check"></i></button>
+                                    <span class="ftype pdf">PDF</span>
+                                    <div class="fmeta"><div class="fname">NL Katalog_AC_2025.pdf</div><div class="fsub">1.9 MB · 25 pages</div></div>
+                                </div>
+                                <div class="file-row selected" data-id="2">
+                                    <button class="checkbox" role="checkbox" aria-checked="true"><i data-lucide="check"></i></button>
+                                    <span class="ftype doc">DOC</span>
+                                    <div class="fmeta"><div class="fname">TDS_Hranipur_SPEED.docx</div><div class="fsub">340 KB</div></div>
+                                </div>
+                                <div class="file-row selected" data-id="3">
+                                    <button class="checkbox" role="checkbox" aria-checked="true"><i data-lucide="check"></i></button>
+                                    <span class="ftype ppt">PPT</span>
+                                    <div class="fmeta"><div class="fname">Sales_Deck_Q2.pptx</div><div class="fsub">2.4 MB · 18 slides</div></div>
+                                </div>
+                            </div>
+                            <div class="add-drop"><i data-lucide="upload-cloud"></i> Drag &amp; drop or browse — DOCX, PPTX, XLSX, PDF, MD, HTML</div>
+                            <div class="toggle-row">
+                                <span class="lbl">Large file mode <span class="hint">· up to 500 MB</span></span>
+                                <button class="switch" aria-label="Large file mode"><span class="knob"></span></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="stepc done" data-step="2">
+                        <div class="stepc-head">
+                            <div class="stepc-ic"><i data-lucide="globe"></i></div>
+                            <div class="stepc-tt">
+                                <div class="stepc-kicker">Step 2</div>
+                                <div class="stepc-title">Target languages</div>
+                                <div class="stepc-value">German, Dutch, Slovak</div>
+                            </div>
+                            <button class="edit-btn"><i data-lucide="pencil"></i> Edit</button>
+                            <i class="stepc-chev" data-lucide="chevron-up"></i>
+                        </div>
+                        <div class="stepc-body">
+                            <div class="search-wrap"><i data-lucide="search"></i><input class="search" type="text" placeholder="Search languages…"></div>
+                            <div class="chips">
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Arabic</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Belarusian</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Bulgarian</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Croatian</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Czech</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Danish</span>
+                                <span class="chip active"><i class="ci" data-lucide="check"></i>Dutch</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>English</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Estonian</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Finnish</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>French</span>
+                                <span class="chip active"><i class="ci" data-lucide="check"></i>German</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Greek</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Hungarian</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Italian</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Latvian</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Lithuanian</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Norwegian</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Polish</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Portuguese</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Romanian</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Russian</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Serbian (Azbuka)</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Serbian (Latin)</span>
+                                <span class="chip active"><i class="ci" data-lucide="check"></i>Slovak</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Slovenian</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Spanish</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Swedish</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Turkish</span>
+                                <span class="chip"><i class="ci" data-lucide="check"></i>Ukrainian</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="stepc" data-step="3">
+                        <div class="stepc-head">
+                            <div class="stepc-ic"><i data-lucide="sliders-horizontal"></i></div>
+                            <div class="stepc-tt">
+                                <div class="stepc-kicker">Step 3</div>
+                                <div class="stepc-title">Mode &amp; model</div>
+                                <div class="stepc-value">General · Gemini 3.0 Flash</div>
+                            </div>
+                            <button class="edit-btn"><i data-lucide="pencil"></i> Edit</button>
+                            <i class="stepc-chev" data-lucide="chevron-up"></i>
+                        </div>
+                        <div class="stepc-body">
+                            <div class="group">
+                                <div class="group-label">Document mode</div>
+                                <div class="pills">
+                                    <span class="pill">Legacy</span><span class="pill active">General</span><span class="pill">Presentation</span><span class="pill">Spreadsheet</span><span class="pill">PDF</span><span class="pill">Markdown</span><span class="pill">HTML</span>
+                                </div>
+                            </div>
+                            <div class="group">
+                                <div class="group-label">Gemini</div>
+                                <div class="pills">
+                                    <span class="pill"><span class="ver">2.5</span>Flash</span><span class="pill"><span class="ver">2.5</span>Pro</span><span class="pill active"><span class="ver">3.0</span>Flash</span><span class="pill"><span class="ver">3.1</span>Flash Lite</span><span class="pill"><span class="ver">3.1</span>Pro</span>
+                                </div>
+                            </div>
+                            <div class="group">
+                                <div class="group-label">Other services</div>
+                                <div class="pills">
+                                    <span class="pill"><i data-lucide="cloud"></i>Google Translate</span><span class="pill"><i data-lucide="cloud"></i>DeepL API</span>
+                                </div>
+                            </div>
+                            <div class="detail">
+                                <div class="detail-name">Gemini 3.0 Flash</div>
+                                <div class="detail-desc">Gemini API key · preview flash model · fast. General mode uses context-aware translation with section headings and smart batching.</div>
+                            </div>
+                            <div class="temp">
+                                <div class="temp-head">
+                                    <div><div class="temp-label">Temperature</div><div class="temp-hint">Lower = more consistent</div></div>
+                                    <div class="seg"><button class="seg-btn active">Default</button><button class="seg-btn">Custom</button></div>
+                                </div>
+                                <div class="temp-slider"><span class="temp-scale">0.0</span><input type="range" min="0" max="2" step="0.05" value="0.7"><span class="temp-scale">2.0</span><span class="temp-val">0.70</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Launch -->
+                    <div class="launch">
+                        <div class="launch-info">
+                            <div class="launch-title">Ready to translate</div>
+                            <div class="launch-sub"><span id="ls-files">3</span> files × 3 languages = <span id="ls-jobs">9</span> documents · est. <span id="ls-cost">$0.0042</span></div>
+                        </div>
+                        <button class="btn-launch" id="launch-btn"><i data-lucide="sparkles"></i> Translate</button>
+                    </div>
+
+                    <!-- Results (appears after a run) -->
+                    <div class="results-card hidden" id="results-card">
+                        <div class="results-head">
+                            <div class="results-title"><i data-lucide="circle-check"></i> Translation complete</div>
+                            <div class="results-sub" id="results-sub">9 documents ready</div>
+                            <button class="btn-dl-all"><i data-lucide="download"></i> Download all (.zip)</button>
+                        </div>
+                        <div class="results-list" id="results-list"></div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        function refreshIcons() { if (window.lucide) lucide.createIcons(); }
+        refreshIcons();
+
+        document.getElementById('collapse-btn').addEventListener('click', function () {
+            document.getElementById('app').classList.toggle('collapsed');
+        });
+
+        document.querySelectorAll('.stepc-head').forEach(function (h) {
+            h.addEventListener('click', function () {
+                var step = h.parentElement;
+                var wasOpen = step.classList.contains('open');
+                document.querySelectorAll('.stepc').forEach(function (s) { s.classList.remove('open'); });
+                if (!wasOpen) step.classList.add('open');
+            });
+        });
+
+        var queueList = document.getElementById('queue-list');
+        var masterCb = document.getElementById('select-all');
+        var rows = Array.prototype.slice.call(queueList.querySelectorAll('.file-row'));
+
+        function updateSelectionUI() {
+            var total = rows.length;
+            var sel = rows.filter(function (r) { return r.classList.contains('selected'); }).length;
+            document.querySelector('.sel-count').innerHTML = '<b>' + sel + '</b> of ' + total + ' selected';
+            if (sel === 0) masterCb.setAttribute('aria-checked', 'false');
+            else if (sel === total) masterCb.setAttribute('aria-checked', 'true');
+            else masterCb.setAttribute('aria-checked', 'mixed');
+            document.getElementById('ls-files').textContent = sel;
+            document.getElementById('ls-jobs').textContent = sel * 3;
+            document.getElementById('ls-cost').textContent = '$' + (sel * 3 * 0.00047).toFixed(4);
+            document.getElementById('launch-btn').disabled = sel === 0;
+            refreshIcons();
+        }
+        function setRow(row, on) { row.classList.toggle('selected', on); row.querySelector('.checkbox').setAttribute('aria-checked', on ? 'true' : 'false'); }
+
+        rows.forEach(function (row) { row.addEventListener('click', function () { setRow(row, !row.classList.contains('selected')); updateSelectionUI(); }); });
+        masterCb.addEventListener('click', function (e) { e.stopPropagation(); var all = rows.every(function (r) { return r.classList.contains('selected'); }); rows.forEach(function (r) { setRow(r, !all); }); updateSelectionUI(); });
+        document.getElementById('clear-queue').addEventListener('click', function (e) { e.stopPropagation(); rows.forEach(function (r) { setRow(r, false); }); updateSelectionUI(); });
+
+        document.querySelectorAll('.chip').forEach(function (c) { c.addEventListener('click', function () { c.classList.toggle('active'); refreshIcons(); }); });
+        document.querySelectorAll('.pills').forEach(function (group) { group.querySelectorAll('.pill').forEach(function (p) { p.addEventListener('click', function () { group.querySelectorAll('.pill').forEach(function (x) { x.classList.remove('active'); }); p.classList.add('active'); refreshIcons(); }); }); });
+        document.querySelectorAll('.switch').forEach(function (s) { s.addEventListener('click', function () { s.classList.toggle('on'); }); });
+        document.querySelectorAll('.seg').forEach(function (seg) { seg.querySelectorAll('.seg-btn').forEach(function (b) { b.addEventListener('click', function () { seg.querySelectorAll('.seg-btn').forEach(function (x) { x.classList.remove('active'); }); b.classList.add('active'); }); }); });
+        document.querySelectorAll('.nav-item').forEach(function (n) { n.addEventListener('click', function () { document.querySelectorAll('.nav-item').forEach(function (x) { x.classList.remove('active'); }); n.classList.add('active'); refreshIcons(); }); });
+
+        // Simulate a run → reveal the results panel
+        var LANGS = [['DE', 'de'], ['NL', 'nl'], ['SK', 'sk']];
+        function splitName(name) { var i = name.lastIndexOf('.'); return i < 0 ? [name, ''] : [name.slice(0, i), name.slice(i)]; }
+        function buildResults() {
+            var selRows = rows.filter(function (r) { return r.classList.contains('selected'); });
+            if (!selRows.length) return;
+            var list = document.getElementById('results-list');
+            list.innerHTML = '';
+            selRows.forEach(function (r) {
+                var name = r.querySelector('.fname').textContent;
+                var ftype = r.querySelector('.ftype');
+                var typeClass = ftype.className.replace('ftype', '').trim();
+                var typeLabel = ftype.textContent;
+                var parts = splitName(name);
+                var outs = '';
+                LANGS.forEach(function (l) {
+                    outs += '<div class="result-out"><span class="out-lang">' + l[0] + '</span><span class="out-name">' + parts[0] + '_' + l[1] + parts[1] + '</span><button class="fdl" title="Download"><i data-lucide="download"></i></button></div>';
+                });
+                var group = document.createElement('div');
+                group.className = 'result-group';
+                group.innerHTML = '<div class="result-src"><span class="ftype sm ' + typeClass + '">' + typeLabel + '</span> ' + name + '</div>' + outs;
+                list.appendChild(group);
+            });
+            document.getElementById('results-sub').textContent = (selRows.length * 3) + ' documents ready · ' + selRows.length + ' files × 3 languages';
+            document.getElementById('results-card').classList.remove('hidden');
+            refreshIcons();
+            document.getElementById('results-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        document.getElementById('launch-btn').addEventListener('click', function () { if (!this.disabled) buildResults(); });
+
+        updateSelectionUI();
+    </script>
+</body>
+
+</html>

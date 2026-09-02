@@ -1,0 +1,5 @@
+/* Aggregated styles — split into static/css/ for maintainability. */
+@import url("/static/css/01-base.css?v=26");
+@import url("/static/css/02-workspace.css?v=26");
+@import url("/static/css/03-overlay-history-responsive.css?v=26");
+@import url("/static/css/04-telemetry-dashboard.css?v=26");

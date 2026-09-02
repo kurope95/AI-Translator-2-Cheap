@@ -1,0 +1,7 @@
+flask
+python-docx
+python-pptx
+openpyxl
+deep-translator
+google-genai
+PyMuPDF

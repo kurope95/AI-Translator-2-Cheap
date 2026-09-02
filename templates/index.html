@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Translator - Document Translation</title>
+    <meta name="description"
+        content="Translate Word documents while preserving formatting. Drop a .docx file and get it translated instantly.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css?v=29">
+</head>
+
+<body>
+    <div class="version-badge">V7</div>
+
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <path d="M4 8L16 4L28 8V16C28 23.2 22.8 29.2 16 32C9.2 29.2 4 23.2 4 16V8Z" fill="url(#grad1)"
+                            opacity="0.9" />
+                        <path d="M10 14L13 20H11L10.5 19H8.5L8 20H6L9 14H10ZM9.5 17.5L9 16L8.5 17.5H9.5Z"
+                            fill="white" />
+                        <path d="M15 14H17V20H15V14Z" fill="white" />
+                        <path d="M20 16.5L23 14V20H21V17.5L19 19V20H17V14H19L20 14.5V16.5Z" fill="white"
+                            opacity="0.85" />
+                        <defs>
+                            <linearGradient id="grad1" x1="4" y1="4" x2="28" y2="32">
+                                <stop offset="0%" stop-color="#6366f1" />
+                                <stop offset="100%" stop-color="#8b5cf6" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div>
+                    <h1>AI Translator</h1>
+                    <p class="subtitle">Translate documents, preserve formatting</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="true"
+                    title="Toggle dark mode">
+                    <span class="theme-toggle-track"><span class="theme-toggle-thumb"></span></span>
+                    <span class="theme-toggle-label">Dark mode</span>
+                </button>
+                <button class="btn-shortcuts" id="btn-shortcuts" title="Keyboard shortcuts (?)">?</button>
+                <button class="btn-settings" id="btn-settings" title="Settings">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="workspace-layout">
+            <aside class="workspace-sidebar">
+                <div class="file-manager-card">
+                    <div class="file-manager-header">
+                        <div>
+                            <h3>Original Files</h3>
+                            <p>Select one or more files for translation</p>
+                        </div>
+                        <div class="file-manager-actions">
+                            <div class="file-manager-density" role="group" aria-label="File list density">
+                                <button type="button" class="btn-density btn-density-active" data-density="comfortable"
+                                    title="Comfortable spacing" aria-pressed="true">Comfort</button>
+                                <button type="button" class="btn-density" data-density="compact"
+                                    title="Compact rows" aria-pressed="false">Compact</button>
+                            </div>
+                            <button class="btn btn-manager" id="btn-select-all-originals" type="button">Select
+                                all</button>
+                            <button class="btn btn-manager btn-manager-subtle" id="btn-clear-originals"
+                                type="button">Clear</button>
+                        </div>
+                    </div>
+                    <div class="file-manager-summary" id="original-manager-summary">
+                        <span class="summary-chip">No files queued</span>
+                    </div>
+                    <div class="file-manager-list" id="original-file-list">
+                        <p class="file-manager-empty" id="original-files-empty">No uploaded documents yet</p>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="main-card">
+                <div class="step-indicator">
+                    <div class="step-dot" data-step="1"><span class="step-dot-circle">1</span><span
+                            class="step-dot-label">Upload</span></div>
+                    <div class="step-line"></div>
+                    <div class="step-dot" data-step="2"><span class="step-dot-circle">2</span><span
+                            class="step-dot-label">Language</span></div>
+                    <div class="step-line"></div>
+                    <div class="step-dot" data-step="3"><span class="step-dot-circle">3</span><span
+                            class="step-dot-label">Model</span></div>
+                </div>
+
+                <section class="workspace-open-panel">
+                    <div class="open-panel-header">
+                        <span class="shelf-kicker">Step 1</span>
+                        <div class="shelf-title-wrap">
+                            <span class="shelf-title">Upload & Queue</span>
+                            <span class="shelf-copy">Load source documents and keep adding files as you work.</span>
+                        </div>
+                        <span class="shelf-meta" id="shelf-upload-meta">No files queued</span>
+                    </div>
+                    <section class="step step-upload" id="step-upload">
+                        <div class="drop-zone" id="drop-zone">
+                            <div class="drop-zone-content">
+                                <div class="drop-zone-compact-info">
+                                    <span>+</span>
+                                    <span id="drop-zone-compact-label">Files loaded - drop more or browse</span>
+                                </div>
+                                <div class="drop-icon">
+                                    <svg width="48" height="48" viewBox="0 0 64 64" fill="none">
+                                        <rect x="12" y="8" width="40" height="48" rx="4" stroke="currentColor"
+                                            stroke-width="2" fill="none" />
+                                        <path d="M22 28L32 20L42 28" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M32 20V44" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" />
+                                        <path d="M20 36H16V52C16 54.2 17.8 56 20 56H44C46.2 56 48 54.2 48 52V36H44"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none" />
+                                    </svg>
+                                </div>
+                                <p class="drop-text">Drag & drop your <strong>.docx</strong>, <strong>.pptx</strong>, <strong>.xlsx</strong>, <strong>.pdf</strong>, <strong>.md</strong>, or <strong>.html</strong> files here</p>
+                                <p class="drop-subtext">or</p>
+                                <button type="button" class="btn btn-browse" id="btn-browse">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" aria-hidden="true">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                        <polyline points="17 8 12 3 7 8" />
+                                        <line x1="12" y1="3" x2="12" y2="15" />
+                                    </svg>
+                                    Browse files
+                                </button>
+                            </div>
+                            <input type="file" id="file-input" class="file-input-visually-hidden"
+                                accept=".docx,.pptx,.xlsx,.pdf,.md,.markdown,.html,.htm" multiple
+                                aria-label="Choose documents to translate">
+                        </div>
+                        <div class="upload-limit-toggle">
+                            <label class="limit-toggle-label">
+                                <span class="limit-toggle-text">Large file mode <span class="limit-toggle-hint">(up to 500 MB)</span></span>
+                                <span class="limit-toggle-switch">
+                                    <input type="checkbox" id="large-file-toggle">
+                                    <span class="limit-toggle-track"><span class="limit-toggle-thumb"></span></span>
+                                </span>
+                            </label>
+                        </div>
+                    </section>
+                </section>
+
+                <div class="workflow-shelves">
+                    <section class="workspace-shelf" data-shelf="language">
+                        <button class="shelf-header" type="button" data-shelf-toggle="language" aria-expanded="false">
+                            <span class="shelf-kicker">Step 2</span>
+                            <span class="shelf-title-wrap">
+                                <span class="shelf-title">Languages</span>
+                                <span class="shelf-copy">Choose one or more target languages for the current
+                                    queue.</span>
+                            </span>
+                            <span class="shelf-meta" id="shelf-language-meta">No languages selected</span>
+                            <span class="shelf-chevron" aria-hidden="true">v</span>
+                        </button>
+                        <div class="shelf-body hidden" id="shelf-language-body">
+                            <section class="step step-language" id="step-language">
+                                <div class="step-section-header">
+                                    <h2>Choose target language(s)</h2>
+                                </div>
+                                <div class="language-controls">
+                                    <div class="language-search"><input type="text" id="language-search"
+                                            class="input-field" placeholder="Search language..."></div>
+                                    <div class="language-meta">
+                                        <span class="language-selected" id="language-selected">No languages
+                                            selected</span>
+                                        <span class="language-count" id="language-count"></span>
+                                    </div>
+                                    <div class="language-toolbar">
+                                        <button class="btn btn-manager" id="btn-select-all-languages"
+                                            type="button">Select all visible</button>
+                                        <button class="btn btn-manager btn-manager-subtle" id="btn-clear-languages"
+                                            type="button">Clear selection</button>
+                                        <button class="btn btn-manager" id="btn-save-preset" type="button"
+                                            title="Save current selection as a preset">+ Preset</button>
+                                    </div>
+                                </div>
+                                <div class="presets-row" id="presets-row"></div>
+                                <div class="language-list" id="language-list">
+                                    {% for lang in languages %}
+                                    <button type="button" class="language-item" data-lang="{{ lang }}"
+                                        data-code="{{ language_codes[lang] }}">{{ lang }}</button>
+                                    {% endfor %}
+                                </div>
+                            </section>
+                        </div>
+                    </section>
+                    <section class="workspace-shelf" data-shelf="setup-model">
+                        <button class="shelf-header" type="button" data-shelf-toggle="setup-model"
+                            aria-expanded="false">
+                            <span class="shelf-kicker">Step 3</span>
+                            <span class="shelf-title-wrap">
+                                <span class="shelf-title">Document Mode and Model</span>
+                                <span class="shelf-copy">Choose the document method and the backend you want to
+                                    run.</span>
+                            </span>
+                            <span class="shelf-meta" id="shelf-setup-model-meta">General - Gemini 3.0 Flash</span>
+                            <span class="shelf-chevron" aria-hidden="true">v</span>
+                        </button>
+                        <div class="shelf-body hidden" id="shelf-setup-model-body">
+                            <section class="step step-action" id="step-action">
+                                <div class="step-section-header">
+                                    <h2>Choose document mode and backend</h2>
+                                </div>
+                                <div class="session-summary-strip" id="session-summary-strip">
+                                    <span class="summary-chip" id="summary-files-chip">0 files</span>
+                                    <span class="summary-chip" id="summary-languages-chip">0 languages</span>
+                                    <span class="summary-chip" id="summary-mode-chip">General</span>
+                                    <span class="summary-chip" id="summary-engine-chip">Gemini 3.0 Flash</span>
+                                </div>
+                                <div class="setup-section-header">
+                                    <span class="setup-section-title">Document Mode</span>
+                                    <span class="setup-section-copy">Pick the translation strategy for how the document
+                                        should be chunked and handled.</span>
+                                </div>
+                                <div class="engine-selector">
+                                    <div class="engine-group">
+                                        <span class="engine-group-label">Document Mode</span>
+                                        <div class="engine-pills">
+                                            <label class="engine-pill engine-pill-service"><input type="radio"
+                                                    name="document-mode" value="legacy" id="radio-mode-legacy"><span
+                                                    class="pill-body">Legacy</span></label>
+                                            <label class="engine-pill"><input type="radio" name="document-mode"
+                                                    value="general" id="radio-mode-general" checked><span
+                                                    class="pill-body">General</span></label>
+                                            <label class="engine-pill"><input type="radio" name="document-mode"
+                                                    value="presentation" id="radio-mode-presentation"><span
+                                                    class="pill-body">Presentation</span></label>
+                                            <label class="engine-pill"><input type="radio" name="document-mode"
+                                                    value="spreadsheet" id="radio-mode-spreadsheet"><span
+                                                    class="pill-body">Spreadsheet</span></label>
+                                            <label class="engine-pill"><input type="radio" name="document-mode"
+                                                    value="pdf" id="radio-mode-pdf"><span
+                                                    class="pill-body">PDF</span></label>
+                                            <label class="engine-pill"><input type="radio" name="document-mode"
+                                                    value="markdown" id="radio-mode-markdown"><span
+                                                    class="pill-body">Markdown</span></label>
+                                            <label class="engine-pill"><input type="radio" name="document-mode"
+                                                    value="html" id="radio-mode-html"><span
+                                                    class="pill-body">HTML</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="engine-detail">
+                                        <span class="engine-detail-name">Mode</span>
+                                        <span class="engine-detail-desc">General uses context-aware translation with
+                                            section headings and smart batching. Legacy uses the original
+                                            Antigravity-style direct translation route. Presentation translates
+                                            all text fields in .pptx slides while preserving layout and images.
+                                            Spreadsheet translates string cells and sheet names in .xlsx files
+                                            while preserving formulas, numbers, and formatting.
+                                            PDF translates selectable text in .pdf files while preserving
+                                            images, vector graphics, and layout; output is a translated .pdf.
+                                            Markdown translates .md files while preserving markdown syntax.
+                                            HTML translates .html files while preserving HTML tags and structure.</span>
+                                    </div>
+                                    <div class="temperature-panel" id="temperature-panel">
+                                        <div class="temperature-header">
+                                            <div class="temperature-label-group">
+                                                <span class="temperature-label">Temperature</span>
+                                                <span class="temperature-hint">Controls creativity vs. precision. Lower
+                                                    = more consistent.</span>
+                                            </div>
+                                            <div class="temperature-mode-toggle" id="temp-mode-toggle">
+                                                <button type="button" class="temp-mode-btn active" id="temp-btn-default"
+                                                    data-mode="default">Default</button>
+                                                <button type="button" class="temp-mode-btn" id="temp-btn-custom"
+                                                    data-mode="custom">Custom</button>
+                                            </div>
+                                        </div>
+                                        <div class="temperature-slider-row hidden" id="temperature-slider-row">
+                                            <span class="temperature-scale-label">0.0</span>
+                                            <input type="range" id="temperature-slider" class="temperature-slider"
+                                                min="0" max="2" step="0.05" value="0.70">
+                                            <span class="temperature-scale-label">2.0</span>
+                                            <span class="temperature-value-badge"
+                                                id="temperature-value-badge">0.70</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="setup-section-header">
+                                    <span class="setup-section-title">Model</span>
+                                    <span class="setup-section-copy">Choose the translation backend and model family for
+                                        this run.</span>
+                                </div>
+                                <div class="engine-selector">
+                                    <div class="engine-group">
+                                        <span class="engine-group-label">Gemini</span>
+                                        <div class="engine-pills">
+                                            <label class="engine-pill"><input type="radio" name="backend"
+                                                    value="gemini-25-flash" id="radio-gemini-25-flash"><span
+                                                    class="pill-body"><span class="pill-ver">2.5</span>
+                                                    Flash</span></label>
+                                            <label class="engine-pill"><input type="radio" name="backend"
+                                                    value="gemini-25-pro" id="radio-gemini-25-pro"><span
+                                                    class="pill-body"><span class="pill-ver">2.5</span>
+                                                    Pro</span></label>
+                                            <label class="engine-pill"><input type="radio" name="backend" value="gemini"
+                                                    id="radio-gemini" checked><span class="pill-body"><span
+                                                        class="pill-ver">3.0</span> Flash</span></label>
+                                            <label class="engine-pill"><input type="radio" name="backend"
+                                                    value="gemini-35-flash-lite"
+                                                    id="radio-gemini-35-flash-lite"><span
+                                                    class="pill-body"><span class="pill-ver">3.5</span> Flash
+                                                    Lite</span></label>
+                                            <label class="engine-pill"><input type="radio" name="backend"
+                                                    value="gemini-37-flash" id="radio-gemini-37-flash"><span
+                                                    class="pill-body"><span class="pill-ver">3.7</span>
+                                                    Flash</span></label>
+                                            <label class="engine-pill"><input type="radio" name="backend"
+                                                    value="gemini-pro" id="radio-gemini-pro"><span
+                                                    class="pill-body"><span class="pill-ver">3.1</span>
+                                                    Pro</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="engine-group">
+                                        <span class="engine-group-label">Services</span>
+                                        <div class="engine-pills">
+                                            <label class="engine-pill engine-pill-service"><input type="radio"
+                                                    name="backend" value="google"><span class="pill-body">Google
+                                                    Translate</span></label>
+                                            <label class="engine-pill engine-pill-service"><input type="radio"
+                                                    name="backend" value="deepl" id="radio-deepl"><span
+                                                    class="pill-body">DeepL API</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="engine-detail" id="engine-detail">
+                                        <span class="engine-detail-name">Gemini 3.0 Flash</span>
+                                        <span class="engine-detail-desc">Gemini API key - Preview flash model -
+                                            Fast</span>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="workspace-action-row">
+                    <button class="btn btn-translate" id="btn-translate" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z" />
+                        </svg>
+                        <span>Translate Selected</span>
+                    </button>
+                    <div class="workspace-status hidden" id="workspace-status"></div>
+                </div>
+            </main>
+
+            <aside class="workspace-sidebar">
+                <div class="file-manager-card file-manager-card-translated">
+                    <div class="file-manager-header">
+                        <div>
+                            <h3>Translated Files</h3>
+                            <p>Results from this session and history</p>
+                        </div>
+                        <div class="file-manager-actions">
+                            <div class="file-manager-density" role="group" aria-label="File list density">
+                                <button type="button" class="btn-density btn-density-active" data-density="comfortable"
+                                    title="Comfortable spacing" aria-pressed="true">Comfort</button>
+                                <button type="button" class="btn-density" data-density="compact"
+                                    title="Compact rows" aria-pressed="false">Compact</button>
+                            </div>
+                            <button class="btn btn-manager" id="btn-select-all-translated" type="button">Select
+                                all</button>
+                            <button class="btn btn-manager btn-manager-subtle" id="btn-clear-history"
+                                type="button">Clear history</button>
+                            <button class="btn btn-manager" id="btn-download-selected" type="button">Download
+                                selected</button>
+                        </div>
+                    </div>
+                    <div class="file-manager-summary" id="translated-manager-summary">
+                        <span class="summary-chip">No translations yet</span>
+                    </div>
+                    <div class="file-manager-list" id="translated-file-list">
+                        <p class="file-manager-empty" id="translated-files-empty">No translated documents yet</p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <footer class="footer">
+            <p>Powered by Google Translate, Gemini, and DeepL - Formatting preserved by python-docx</p>
+        </footer>
+    </div>
+
+    <div class="progress-overlay hidden" id="progress-overlay">
+        <div class="translation-scene">
+            <div class="scene-grid"></div>
+            <div class="scene-stars" id="scene-stars"></div>
+            <div class="scene-document scene-doc-left">
+                <div class="scene-doc-paper">
+                    <div class="scene-doc-line w80"></div>
+                    <div class="scene-doc-line w55"></div>
+                    <div class="scene-doc-line w90"></div>
+                    <div class="scene-doc-line w40"></div>
+                    <div class="scene-doc-line w70"></div>
+                    <div class="scene-doc-line w60"></div>
+                    <div class="scene-doc-line w85"></div>
+                </div>
+                <span class="scene-doc-label">Source</span>
+            </div>
+            <div class="scene-beam scene-beam-left">
+                <div class="beam-pulse"></div>
+            </div>
+            <div class="scene-engine">
+                <div class="engine-ring engine-ring-1"></div>
+                <div class="engine-ring engine-ring-2"></div>
+                <div class="engine-ring engine-ring-3"></div>
+                <div class="engine-core">
+                    <div class="engine-core-glow"></div>
+                </div>
+                <div class="engine-sparks" id="engine-sparks"></div>
+            </div>
+            <div class="scene-beam scene-beam-right">
+                <div class="beam-pulse"></div>
+            </div>
+            <div class="scene-document scene-doc-right">
+                <div class="scene-doc-paper">
+                    <div class="scene-doc-line w80"></div>
+                    <div class="scene-doc-line w50"></div>
+                    <div class="scene-doc-line w90"></div>
+                    <div class="scene-doc-line w65"></div>
+                    <div class="scene-doc-line w75"></div>
+                    <div class="scene-doc-line w45"></div>
+                    <div class="scene-doc-line w85"></div>
+                </div>
+                <span class="scene-doc-label">Translated</span>
+            </div>
+            <div class="scene-particles" id="scene-particles"></div>
+        </div>
+        <div class="progress-hud">
+            <div class="progress-ring-container">
+                <svg class="progress-ring" width="100" height="100" viewBox="0 0 100 100">
+                    <circle class="progress-ring-bg" cx="50" cy="50" r="42" fill="none" stroke-width="5" />
+                    <circle class="progress-ring-fill" id="progress-ring-fill" cx="50" cy="50" r="42" fill="none"
+                        stroke-width="5" stroke-dasharray="263.9" stroke-dashoffset="263.9" />
+                </svg>
+                <span class="progress-percent" id="progress-percent">0%</span>
+            </div>
+            <h3 class="progress-phase" id="progress-phase">Starting translation...</h3>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <p class="progress-subtext" id="progress-subtext">Preparing translation queue...</p>
+            <button class="btn btn-cancel" id="btn-cancel">Cancel Translation</button>
+        </div>
+    </div>
+
+    <!-- Telemetry Popup Modal -->
+    <div class="telemetry-backdrop" id="telemetry-backdrop"></div>
+    <div class="telemetry-modal" id="telemetry-modal">
+        <div class="telemetry-header">
+            <h3>Batch Translation Report</h3>
+            <button class="btn-close-telemetry" id="btn-close-telemetry" title="Close">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+
+        <div class="telemetry-body stagger-container">
+            <!-- Hero Cost Receipt -->
+            <div class="telemetry-hero stagger-item">
+                <div class="telemetry-hero-glow"></div>
+                <div class="telemetry-cost-wrapper">
+                    <span class="telemetry-cost-label">Total Estimated API Cost</span>
+                    <div class="telemetry-cost-main" id="tel-cost-main">$0.0000</div>
+                    <div class="telemetry-cost-note" id="tel-cost-note">Based on Google Provider Rates</div>
+                </div>
+            </div>
+
+            <div class="telemetry-grid">
+                <!-- Batch Summary Card -->
+                <div class="telemetry-card stagger-item">
+                    <h4>Batch Summary</h4>
+                    <div class="telemetry-card-content">
+                        <div class="tel-row">
+                            <span class="tel-label">Files</span>
+                            <span class="tel-value" id="tel-file-count">-</span>
+                        </div>
+                        <div class="tel-row">
+                            <span class="tel-label">Total Time</span>
+                            <span class="tel-value highlight" id="tel-duration">-</span>
+                        </div>
+                        <div class="tel-row">
+                            <span class="tel-label">Avg per File</span>
+                            <span class="tel-value" id="tel-avg-duration">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Engine Specs Card -->
+                <div class="telemetry-card stagger-item">
+                    <h4>Engine Specs</h4>
+                    <div class="telemetry-card-content">
+                        <div class="tel-row">
+                            <span class="tel-label">Backend</span>
+                            <span class="tel-value" id="tel-backend">-</span>
+                        </div>
+                        <div class="tel-row">
+                            <span class="tel-label">Architecture</span>
+                            <span class="tel-value badge" id="tel-mode">-</span>
+                        </div>
+                        <div class="tel-row hidden" id="tel-tm-row">
+                            <span class="tel-label">Translation memory</span>
+                            <span class="tel-value" id="tel-tm-stats">—</span>
+                        </div>
+                        <div class="tel-row">
+                            <span class="tel-label">API Calls</span>
+                            <span class="tel-value" id="tel-api-calls">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Token Usage Visualization Card (Spans full width) -->
+                <div class="telemetry-card telemetry-card-full stagger-item">
+                    <h4>Token Usage</h4>
+                    <div class="telemetry-tokens-viz">
+                        <!-- Input Tokens Ring -->
+                        <div class="token-ring-container">
+                            <svg class="circular-chart blue" viewBox="0 0 36 36">
+                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="circle chart-input" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" id="ring-input-path" />
+                            </svg>
+                            <div class="ring-label">
+                                <span class="ring-value" id="tel-input-tokens">0</span>
+                                <span class="ring-title">Prompt</span>
+                            </div>
+                        </div>
+
+                        <!-- Output Tokens Ring -->
+                        <div class="token-ring-container">
+                            <svg class="circular-chart purple" viewBox="0 0 36 36">
+                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="circle chart-output" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" id="ring-output-path" />
+                            </svg>
+                            <div class="ring-label">
+                                <span class="ring-value" id="tel-output-tokens">0</span>
+                                <span class="ring-title">Completion</span>
+                            </div>
+                        </div>
+
+                                        <div class="token-totals">
+                                            <div class="tel-row-total">
+                                                <span>Total Tokens:</span>
+                                                <strong class="highlight-total" id="tel-total-tokens">0</strong>
+                                            </div>
+                                            <div class="tel-row-sub hidden" id="tel-thinking-row">
+                                                <span class="tel-label">Thinking Tokens:</span> <span id="tel-thinking-tokens" class="warn">0</span>
+                                            </div>
+                                            <div class="tel-row-sub">
+                                                <span class="tel-label">Input Cost:</span> <span id="tel-cost-input">$0.00</span>
+                                            </div>
+                                            <div class="tel-row-sub">
+                                                <span class="tel-label">Output Cost:</span> <span id="tel-cost-output">$0.00</span>
+                                            </div>
+                                            <div class="tel-row-sub hidden" id="tel-thinking-row-cost">
+                                                <span class="tel-label">Thinking Cost:</span> <span id="tel-cost-thinking" class="warn">$0.00</span>
+                                            </div>
+                                        </div>
+                    </div>
+                </div>
+
+                <!-- Reliability Card -->
+                <div class="telemetry-card telemetry-card-full stagger-item">
+                    <h4>Network & Reliability</h4>
+                    <div class="telemetry-network-grid">
+                        <div class="network-stat">
+                            <span class="net-value" id="tel-batches">0</span>
+                            <span class="net-label">Total Batches</span>
+                        </div>
+                        <div class="network-stat">
+                            <span class="net-value warn" id="tel-retries">0</span>
+                            <span class="net-label">API Retries</span>
+                        </div>
+                        <div class="network-stat">
+                            <span class="net-value" id="tel-avg-attempts">0</span>
+                            <span class="net-label">Avg Attempts</span>
+                        </div>
+                        <div class="network-stat">
+                            <span class="net-value alert" id="tel-failed-batches">0</span>
+                            <span class="net-label">Failed Batches</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Per-file accordion -->
+            <div id="tel-files-accordion" class="tel-files-accordion stagger-item"></div>
+        </div>
+        <div class="telemetry-footer stagger-item">
+            <button class="btn btn-telemetry-close" id="btn-telemetry-close">Close</button>
+        </div>
+    </div>
+
+    <div class="settings-backdrop" id="settings-backdrop"></div>
+    <aside class="settings-drawer" id="settings-panel">
+        <div class="settings-drawer-header">
+            <h3>Settings</h3>
+            <button class="btn-close-settings" id="btn-close-settings" title="Close">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        </div>
+        <div class="settings-drawer-body">
+            <div class="settings-section">
+                <label class="settings-label">Gemini API Key</label>
+                <p class="settings-hint">Get a free key from <a href="https://aistudio.google.com/apikey"
+                        target="_blank">Google AI Studio</a></p>
+                <div class="api-key-input-row"><input type="password" id="api-key-input" class="input-field"
+                        placeholder="Paste your API key here" autocomplete="off"><button class="btn btn-save-key"
+                        id="btn-save-key">Save</button></div>
+                <div class="key-status" id="key-status" data-has-key="{{ 'true' if has_gemini_key else 'false' }}">{% if
+                    has_gemini_key %}<span class="key-saved">API key saved</span>{% else %}<span class="key-missing">No
+                        API key set - using Google Translate</span>{% endif %}</div>
+            </div>
+            <div class="settings-section">
+                <label class="settings-label">DeepL API Key</label>
+                <p class="settings-hint">Use your DeepL API key from <a href="https://developers.deepl.com"
+                        target="_blank">DeepL API</a></p>
+                <div class="api-key-input-row"><input type="password" id="deepl-api-key-input" class="input-field"
+                        placeholder="Paste your DeepL API key here" autocomplete="off"><button class="btn btn-save-key"
+                        id="btn-save-deepl-key">Save</button></div>
+                <div class="key-status" id="deepl-key-status" data-has-key="{{ 'true' if has_deepl_key else 'false' }}">
+                    {% if has_deepl_key %}<span class="key-saved">? DeepL API key saved</span>{% else %}<span
+                        class="key-missing">No DeepL API key set</span>{% endif %}</div>
+            </div>
+            <div class="settings-section">
+                <label class="settings-label">Domain Context (for Gemini and DeepL)</label>
+                <p class="settings-hint">Add one or more domain hints to improve technical jargon. Google Translate does
+                    not use this field.</p>
+                <div class="phrases-input-row"><input type="text" id="domain-input" class="input-field"
+                        placeholder='e.g. "Woodworking Adhesives"' autocomplete="off"><button class="btn btn-add-phrase"
+                        id="btn-add-domain">Add</button></div>
+                <div class="phrases-list" id="domain-list">
+                    {% for domain_item in domain_contexts %}<div class="phrase-tag" data-domain="{{ domain_item }}">
+                        <span>{{ domain_item }}</span><button class="phrase-remove" title="Remove">×</button>
+                    </div>{%
+                    endfor %}
+                    <p class="phrases-empty {% if domain_contexts %}hidden{% endif %}" id="domain-empty">No domain
+                        contexts added yet</p>
+                </div>
+                <div class="phrases-save-row"><span class="phrases-status" id="domain-status"></span></div>
+            </div>
+            <div class="settings-section">
+                <label class="settings-label">Do Not Translate - Protected Phrases</label>
+                <p class="settings-hint">Exact phrases that should stay in English (e.g., testing methods, brand names).
+                </p>
+                <div class="phrases-input-row"><input type="text" id="phrase-input" class="input-field"
+                        placeholder='e.g. "Ring and Ball"' autocomplete="off"><button class="btn btn-add-phrase"
+                        id="btn-add-phrase">Add</button></div>
+                <div class="phrases-list" id="phrases-list">
+                    {% for phrase in phrases %}<div class="phrase-tag" data-phrase="{{ phrase }}"><span>{{ phrase
+                            }}</span><button class="phrase-remove" title="Remove">×</button></div>{% endfor %}
+                    <p class="phrases-empty {% if phrases %}hidden{% endif %}" id="phrases-empty">No phrases added yet
+                    </p>
+                </div>
+                <input type="file" id="glossary-csv-input" accept=".csv,text/csv" class="hidden">
+                <div class="csv-import-actions">
+                    <button type="button" class="btn tile-action-btn-secondary" id="btn-import-protected-csv">Import protected phrases CSV</button>
+                    <button type="button" class="btn tile-action-btn-secondary" id="btn-import-tm-csv">Import TM pairs CSV</button>
+                    <label class="csv-tm-lang-label" for="glossary-tm-lang">TM target language</label>
+                    <select id="glossary-tm-lang" class="input-field tm-lang-select-glossary"
+                        title="Translation memory CSV applies to this target language">
+                        {% for lang in languages %}<option value="{{ lang }}">{{ lang }}</option>{% endfor %}
+                    </select>
+                </div>
+                <p class="settings-hint phrases-csv-hint">Protected CSV: first column phrases (optional header phrase/term).
+                    Translation memory CSV: source and target columns (optional headers Source, Target).</p>
+                <div class="phrases-save-row"><span class="phrases-status" id="phrases-status"></span></div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="shortcuts-backdrop hidden" id="shortcuts-backdrop"></div>
+    <div class="shortcuts-modal hidden" id="shortcuts-modal">
+        <div class="shortcuts-modal-header">
+            <span>Keyboard Shortcuts</span>
+            <button class="btn-close-settings" id="btn-close-shortcuts" title="Close">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        </div>
+        <table class="shortcuts-table">
+            <tbody>
+                <tr>
+                    <td><kbd>Ctrl + Enter</kbd></td>
+                    <td>Start translation</td>
+                </tr>
+                <tr>
+                    <td><kbd>Esc</kbd></td>
+                    <td>Close panel / Cancel translation</td>
+                </tr>
+                <tr>
+                    <td><kbd>Ctrl + S</kbd></td>
+                    <td>Save API key (when Settings open)</td>
+                </tr>
+                <tr>
+                    <td><kbd>?</kbd></td>
+                    <td>Toggle this shortcuts panel</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script type="module" src="/static/app.js?v=29"></script>
+</body>
+
+</html>
